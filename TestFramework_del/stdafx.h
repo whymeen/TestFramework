@@ -37,9 +37,7 @@
 #include <afxsock.h>            // MFC 소켓 확장
 
 
-#include "EASStruct.h"
-#include "EASCommon.h"
-#include "EASMsgCode.h"
+
 
 
 

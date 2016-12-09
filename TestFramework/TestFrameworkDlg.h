@@ -109,4 +109,8 @@ public:
 
 	void readModelData();
 
+	afx_msg void OnCbnSelchangeComboTType();
+	afx_msg void OnCbnSelchangeComboDType();
+	afx_msg void OnBnClickedButtonAddTorpedo();
+	afx_msg void OnBnClickedButtonAddDecoy();
 };

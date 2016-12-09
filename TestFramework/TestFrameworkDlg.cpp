@@ -98,6 +98,10 @@ BEGIN_MESSAGE_MAP(CTestFrameworkDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_ADD_OBJECT, &CTestFrameworkDlg::OnBnClickedButtonAddObject)
 	ON_WM_DESTROY()
 	ON_CBN_SELCHANGE(IDC_COMBO_TYPE, &CTestFrameworkDlg::OnCbnSelchangeComboType)
+	ON_CBN_SELCHANGE(IDC_COMBO_T_TYPE, &CTestFrameworkDlg::OnCbnSelchangeComboTType)
+	ON_CBN_SELCHANGE(IDC_COMBO_D_TYPE, &CTestFrameworkDlg::OnCbnSelchangeComboDType)
+	ON_BN_CLICKED(IDC_BUTTON_ADD_TORPEDO, &CTestFrameworkDlg::OnBnClickedButtonAddTorpedo)
+	ON_BN_CLICKED(IDC_BUTTON_ADD_DECOY, &CTestFrameworkDlg::OnBnClickedButtonAddDecoy)
 END_MESSAGE_MAP()
 
 
@@ -177,6 +181,8 @@ BOOL CTestFrameworkDlg::OnInitDialog()
 	m_cvEditOrgLon.SetWindowText(_T("0"));
 	m_cvEditLat.SetWindowText(_T("0"));
 	m_cvEditLong.SetWindowText(_T("0"));
+	m_cvEditTorpedoID.SetWindowText(_T("3000"));
+	m_cvEditDecoyID.SetWindowText(_T("4000"));
 
 
 	// 소켓 초기화
@@ -304,6 +310,7 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 
 	m_cvEditLat.GetWindowText(cstmp);
 	latitude = _ttof(cstmp);
+	
 	m_cvEditLong.GetWindowText(cstmp);
 	longitude = _ttof(cstmp);
 
@@ -334,6 +341,20 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 		pTorpedo.bFired = false;
 
 		pObject.m_vTorpedoList.push_back(pTorpedo);
+
+
+		// 네트워크 전달
+		//m_ListenSocket.Send((LPVOID)(LPCTSTR)m_strMessage,
+			//m_strMessage.GetLength() * 2);
+		TCHAR szBuffer[1024];
+		_itot_s(objectID, szBuffer, 10);
+		m_ListenSocket.SendChatDataAll(szBuffer);
+
+
+
+
+
+
 
 		// 네트워크로 무장정보 전달 [8/16/2010 boxface]
 		//////////////////////////////////////////////////////////////////////////
@@ -435,33 +456,36 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 	m_pObjectManager.addObject(pObject);*/
 
 
-	//////////////////////////////////////////////////////////////////////////
-
-	/*// 다른 Dlg에 ID 정보 업데이트 [6/15/2010 boxface]
-	pM->m_pBaseView->addObject(objectID);
+	CString strTmp;
+	strTmp.Format(_T("%d 객체가 생성되었습니다."), objectID);
+	m_List.AddString(strTmp);
+	m_List.SetCurSel(m_List.GetCount() - 1);
 
 	objectID += 1;
 	cstmp.Format("%d", objectID);
 	m_cvEditObjectID.SetWindowText(cstmp);
 
+
 	// 타입별 curID 값 증가 [7/29/2010 boxface]
 	switch (m_cvCbxObjectType.GetCurSel())
 	{
 	case OBJECT_TYPE_SUBMARINE:
-		pM->SetCurSubmarineID(pM->GetCurSubmarineID() + 1);
+		SetCurSubmarineID(GetCurSubmarineID() + 1);
 		break;
 	case OBJECT_TYPE_SURFACESHIP:
-		pM->SetCurSurfaceshipID(pM->GetCurSurfaceshipID() + 1);
+		SetCurSurfaceshipID(GetCurSurfaceshipID() + 1);
 		break;
 	case OBJECT_TYPE_TORPEDO:
-		pM->SetCurTorpedoID(pM->GetCurTorpedoID() + 1);
+		SetCurTorpedoID(GetCurTorpedoID() + 1);
 		break;
 	case OBJECT_TYPE_DECOY:
-		pM->SetCurDecoyID(pM->GetCurDecoyID() + 1);
+		SetCurDecoyID(GetCurDecoyID() + 1);
 		break;
 	default:
 		break;
 	}
+
+
 
 	// GUI 초기화 [7/29/2010 boxface]
 	m_cvCbxSubObjectList.ResetContent();
@@ -472,7 +496,7 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 	m_vDecoyList.clear();
 
 	cstmp.Format("TUBE NUM : %d", m_vTorpedoList.size() + 1);
-	m_cvTxtTubeNum.SetWindowText(cstmp); */
+	m_cvTxtTubeNum.SetWindowText(cstmp); 
 }
 
 
@@ -628,4 +652,158 @@ void CTestFrameworkDlg::readModelData()
 		fclose(fp);
 	}
 
+}
+
+void CTestFrameworkDlg::OnCbnSelchangeComboTType()
+{
+	m_cvCbxImgType.ResetContent();
+
+	int i, count = m_length.size();
+
+	switch (m_cvCbxTorpedoType.GetCurSel())
+	{
+	case 0:
+	{
+		for (i = 0; i<count; i++)
+		{
+			if (m_length[i].type != OBJECT_TYPE_TORPEDO)
+			{
+				continue;
+			}
+
+			int j, count0 = m_length[i].m_modelLength.size();
+			for (j = 0; j<count0; j++)
+			{
+				m_cvCbxImgType.InsertString(j, m_length[i].m_modelLength[j].modelName);
+			}
+		}
+	}
+	break;
+	case 1:
+	{
+		for (i = 0; i<count; i++)
+		{
+			if (m_length[i].type != OBJECT_TYPE_TORPEDO)
+			{
+				continue;
+			}
+
+			int j, count0 = m_length[i].m_modelLength.size();
+			for (j = 0; j<count0; j++)
+			{
+				m_cvCbxImgType.InsertString(j, m_length[i].m_modelLength[j].modelName);
+			}
+		}
+	}
+	break;
+	default:
+		m_cvCbxImgType.ResetContent();
+		break;
+	}
+
+	m_cvCbxImgType.SetCurSel(0);
+}
+
+
+void CTestFrameworkDlg::OnCbnSelchangeComboDType()
+{
+	m_cvCbxDecoyImgType.ResetContent();
+
+	int i, count = m_length.size();
+
+
+	for (i = 0; i<count; i++)
+	{
+		if (m_length[i].type != OBJECT_TYPE_DECOY)
+		{
+			continue;
+		}
+
+		int j, count0 = m_length[i].m_modelLength.size();
+		for (j = 0; j<count0; j++)
+		{
+			m_cvCbxDecoyImgType.InsertString(j, m_length[i].m_modelLength[j].modelName);
+		}
+	}
+
+	m_cvCbxDecoyImgType.SetCurSel(0);
+}
+
+
+void CTestFrameworkDlg::OnBnClickedButtonAddTorpedo()
+{
+	CString cstmp, csTorpedoID;
+	int type;
+
+	// GUI에서 설정된 값 획득 [8/5/2010 boxface]
+	if (m_cvCbxTorpedoType.GetCurSel() == 0)
+	{
+		type = OBJECT_TYPE_TORPEDO;
+	}
+	else
+	{
+		type = OBJECT_TYPE_TORPEDO;
+	}
+
+	m_cvEditTorpedoID.GetWindowText(csTorpedoID);
+	int objectID = atoi(csTorpedoID);
+	m_cvEditObjectID.GetWindowText(cstmp);
+	int parentID = atoi(cstmp);
+
+	// 콤보박스에 설정된 어뢰정보 추가 [8/5/2010 boxface]
+	m_cvCbxSubObjectList.AddString(csTorpedoID);
+	m_cvCbxSubObjectList.SetCurSel(m_cvCbxSubObjectList.GetCount() - 1);
+
+	// 설정된 어뢰정보를 내부 메모리에 저장 [8/5/2010 boxface]
+	SUB_OBJECT_INFO pTorpedo;
+
+	pTorpedo.objectID = objectID;
+	pTorpedo.objectType = type;
+	pTorpedo.imageType = m_cvCbxImgType.GetCurSel() + 1;
+
+	m_vTorpedoList.push_back(pTorpedo);
+
+	// 어뢰의 ID값 증가시켜 GUI에 업데이트 [8/5/2010 boxface]
+	SetCurTorpedoID(GetCurTorpedoID() + 1);
+
+	objectID = GetCurTorpedoID() + 3000;
+	cstmp.Format("%d", objectID);
+	m_cvEditTorpedoID.SetWindowText(cstmp);
+
+	cstmp.Format("TUBE NUM : %d", m_vTorpedoList.size() + 1);
+	m_cvTxtTubeNum.SetWindowText(cstmp);
+}
+
+
+void CTestFrameworkDlg::OnBnClickedButtonAddDecoy()
+{
+	CString cstmp, csDecoyID;
+	int type;
+
+	type = OBJECT_TYPE_DECOY;
+
+	m_cvEditDecoyID.GetWindowText(csDecoyID);
+	int objectID = atoi(csDecoyID);
+	m_cvEditDecoyID.GetWindowText(cstmp);
+	int parentID = atoi(cstmp);
+
+	m_cvCbxDecoyList.AddString(csDecoyID);
+	m_cvCbxDecoyList.SetCurSel(m_cvCbxDecoyList.GetCount() - 1);
+	m_cvCbxDecoyList.UpdateData();
+
+
+	SUB_OBJECT_INFO pDecoy;
+
+	pDecoy.objectID = objectID;
+	pDecoy.objectType = type;
+	pDecoy.imageType = m_cvCbxDecoyImgType.GetCurSel() + 1;
+
+	m_vDecoyList.push_back(pDecoy);
+
+
+	SetCurDecoyID(GetCurDecoyID() + 1);
+
+	objectID = GetCurDecoyID() + 4000;
+	cstmp.Format("%d", objectID);
+	m_cvEditDecoyID.SetWindowText(cstmp);
 }

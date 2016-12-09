@@ -26,6 +26,7 @@ void CListenSocket::OnAccept(int nErrorCode)
 	{
 		pClient->SetListenSocket(this);
 		m_ptrClientSocketList.AddTail(pClient);
+
 	}
 	else
 	{
@@ -69,3 +70,19 @@ void CListenSocket::SendChatDataAll(TCHAR* pszMessage)
 	}
 }
 
+
+void CListenSocket::SendObjectId(TCHAR* pszMessage)
+{
+	POSITION pos;
+	pos = m_ptrClientSocketList.GetHeadPosition();
+	CClientSocket* pClient = NULL;
+
+	while (pos != NULL)
+	{
+		pClient = (CClientSocket*)m_ptrClientSocketList.GetNext(pos);
+		if (pClient != NULL)
+		{
+			pClient->Send(pszMessage, lstrlen(pszMessage) * 2);
+		}
+	}
+}

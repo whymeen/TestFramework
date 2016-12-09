@@ -12,6 +12,7 @@ public:
 	virtual void OnAccept(int nErrorCode);
 	void CloseClientSocket(CSocket* pClient);
 	void SendChatDataAll(TCHAR* pszMessage);
+	void SendObjectId(TCHAR* pszMessage);
 };
 
 

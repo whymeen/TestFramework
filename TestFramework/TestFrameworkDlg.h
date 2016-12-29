@@ -1,9 +1,7 @@
-
 // TestFrameworkDlg.h : 헤더 파일
 //
 
 #pragma once
-
 
 #include "afxwin.h"
 #include "ListenSocket.h"
@@ -32,18 +30,17 @@ struct _ModelLength
 // CTestFrameworkDlg 대화 상자
 class CTestFrameworkDlg : public CDialogEx
 {
-// 생성입니다.
+	// 생성입니다.
 public:
 	CTestFrameworkDlg(CWnd* pParent = NULL);	// 표준 생성자입니다.
 	CListenSocket		m_ListenSocket;
-// 대화 상자 데이터입니다.
+	// 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_TESTFRAMEWORK_DIALOG };
 #endif
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 지원입니다.
-
 
 // 구현입니다.
 protected:
@@ -101,16 +98,22 @@ public:
 	const int GetCurSurfaceshipID() { return m_iSurfaceshipID; }
 	const int GetCurTorpedoID() { return m_iTorpedoID; }
 	const int GetCurDecoyID() { return m_iDecoyID; }
-	
+
 	void SetCurSubmarineID(int id) { m_iSubmarineID = id; }
 	void SetCurSurfaceshipID(int id) { m_iSurfaceshipID = id; }
 	void SetCurTorpedoID(int id) { m_iTorpedoID = id; }
 	void SetCurDecoyID(int id) { m_iDecoyID = id; }
 
 	void readModelData();
+	void deleteObject(int objectID);
+
 
 	afx_msg void OnCbnSelchangeComboTType();
 	afx_msg void OnCbnSelchangeComboDType();
 	afx_msg void OnBnClickedButtonAddTorpedo();
 	afx_msg void OnBnClickedButtonAddDecoy();
+
+public:
+	afx_msg void OnBnClickedButtonDelObject();
+	CComboBox m_cvCbxObjectList;
 };

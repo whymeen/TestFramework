@@ -1,4 +1,3 @@
-
 // TestFrameworkDlg.cpp : 구현 파일
 //
 
@@ -9,12 +8,9 @@
 #include "objectBase.h"
 #include "ClientSocket.h"
 
-
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
 
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
 
@@ -23,12 +19,12 @@ class CAboutDlg : public CDialogEx
 public:
 	CAboutDlg();
 
-// 대화 상자 데이터입니다.
+	// 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ABOUTBOX };
 #endif
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
 
 // 구현입니다.
@@ -43,16 +39,12 @@ CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX)
 void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
-
 // CTestFrameworkDlg 대화 상자
-
-
 
 CTestFrameworkDlg::CTestFrameworkDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_TESTFRAMEWORK_DIALOG, pParent)
@@ -89,6 +81,7 @@ void CTestFrameworkDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_ORG_LON, m_cvEditOrgLon);
 	DDX_Control(pDX, IDC_EDIT_LAT, m_cvEditLat);
 	DDX_Control(pDX, IDC_EDIT_LONG, m_cvEditLong);
+	DDX_Control(pDX, IDC_COMBO_LIST_OBJECT, m_cvCbxObjectList);
 }
 
 BEGIN_MESSAGE_MAP(CTestFrameworkDlg, CDialogEx)
@@ -102,8 +95,8 @@ BEGIN_MESSAGE_MAP(CTestFrameworkDlg, CDialogEx)
 	ON_CBN_SELCHANGE(IDC_COMBO_D_TYPE, &CTestFrameworkDlg::OnCbnSelchangeComboDType)
 	ON_BN_CLICKED(IDC_BUTTON_ADD_TORPEDO, &CTestFrameworkDlg::OnBnClickedButtonAddTorpedo)
 	ON_BN_CLICKED(IDC_BUTTON_ADD_DECOY, &CTestFrameworkDlg::OnBnClickedButtonAddDecoy)
+	ON_BN_CLICKED(IDC_BUTTON_DEL_OBJECT, &CTestFrameworkDlg::OnBnClickedButtonDelObject)
 END_MESSAGE_MAP()
-
 
 // CTestFrameworkDlg 메시지 처리기
 
@@ -139,7 +132,6 @@ BOOL CTestFrameworkDlg::OnInitDialog()
 	//모델 데이터 읽기 시작
 	readModelData();
 
-									
 	m_cvCbxObjectType.InsertString(OBJECT_TYPE_INIT, _T("초기값"));
 	m_cvCbxObjectType.InsertString(OBJECT_TYPE_SURFACESHIP, _T("수상함"));
 	m_cvCbxObjectType.InsertString(OBJECT_TYPE_SUBMARINE, _T("잠수함"));
@@ -147,7 +139,7 @@ BOOL CTestFrameworkDlg::OnInitDialog()
 	//m_cvCbxObjectType.InsertString(OBJECT_TYPE_DECOY, "기만기");
 	//m_cvCbxObjectType.SetCurSel(OBJECT_TYPE_SUBMARINE);
 	m_cvEditObjectID.SetReadOnly(true);
-	
+
 	m_cvCbxStatus.InsertString(OBJECT_STATUS_STANDBY, "대기");
 	m_cvCbxStatus.InsertString(OBJECT_STATUS_ENABLE, "사용(발사)");
 	m_cvCbxStatus.InsertString(OBJECT_STATUS_DISABLE, "중지(파괴)");
@@ -161,10 +153,8 @@ BOOL CTestFrameworkDlg::OnInitDialog()
 	m_cvCbxTorpedoType.InsertString(1, "경어뢰");
 	m_cvCbxTorpedoType.SetCurSel(0);
 
-
 	m_cvCbxDecoyType.InsertString(0, "계류식");
 	m_cvCbxDecoyType.SetCurSel(0);
-
 
 	m_iSubmarineID = 0;
 	m_iSurfaceshipID = 0;
@@ -183,7 +173,6 @@ BOOL CTestFrameworkDlg::OnInitDialog()
 	m_cvEditLong.SetWindowText(_T("0"));
 	m_cvEditTorpedoID.SetWindowText(_T("3000"));
 	m_cvEditDecoyID.SetWindowText(_T("4000"));
-
 
 	// 소켓 초기화
 
@@ -251,19 +240,18 @@ HCURSOR CTestFrameworkDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-
-
 void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 {
 	CString cstmp;
 
 	int objectID, type, imageType, iIFF;
 	double x, y, z, h, p, r, latitude, longitude;
-	
+
 	int i, torpedoNo, decoyNo;
 	objectID = 0;
 
 	m_cvEditObjectID.GetWindowText(cstmp);
+	m_cvCbxObjectList.AddString(cstmp);    // 객체 삭제 목록에 추가 
 	objectID = _ttoi(cstmp);
 	if (objectID > 2000 && objectID < 3001)
 	{
@@ -310,7 +298,7 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 
 	m_cvEditLat.GetWindowText(cstmp);
 	latitude = _ttof(cstmp);
-	
+
 	m_cvEditLong.GetWindowText(cstmp);
 	longitude = _ttof(cstmp);
 
@@ -329,7 +317,7 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 
 	pObject.setTranslate(x, y, z);
 	pObject.setRotate(h, p, r);
-	for (i = 0; i<torpedoNo; i++)
+	for (i = 0; i < torpedoNo; i++)
 	{
 		// 내부 메모리에 전달 [8/16/2010 boxface]
 		STRUCT_TORPEDO_INFO pTorpedo;
@@ -342,19 +330,12 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 
 		pObject.m_vTorpedoList.push_back(pTorpedo);
 
-
 		// 네트워크 전달
 		//m_ListenSocket.Send((LPVOID)(LPCTSTR)m_strMessage,
 			//m_strMessage.GetLength() * 2);
 		TCHAR szBuffer[1024];
 		_itot_s(objectID, szBuffer, 10);
 		m_ListenSocket.SendChatDataAll(szBuffer);
-
-
-
-
-
-
 
 		// 네트워크로 무장정보 전달 [8/16/2010 boxface]
 		//////////////////////////////////////////////////////////////////////////
@@ -386,7 +367,7 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 		sendData.searchPattenMode = 1;
 		sendData.ACCMAbility = 2;
 		sendData.guidanceMode = 3;
-		sendData.strightSearchMode = 1; 
+		sendData.strightSearchMode = 1;
 
 		//sendData.x = x;
 		//sendData.y = y;
@@ -402,7 +383,6 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 		memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_TORPEDO_SETUP));
 		pM->SendEventData(sendBuf, sizeof(EVENT_TORPEDO_SETUP)); */
 		//////////////////////////////////////////////////////////////////////////
-
 	}
 
 	/*for (i = 0; i<decoyNo; i++)
@@ -446,7 +426,6 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 		sendData.workingDelayTime = 200;
 		sendData.operationMode = 1;
 
-
 		char sendBuf[NETWORK_MAXSIZE];
 		memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_TORPEDO_SETUP));
 		pM->SendEventData(sendBuf, sizeof(EVENT_TORPEDO_SETUP));
@@ -454,7 +433,6 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 	}
 
 	m_pObjectManager.addObject(pObject);*/
-
 
 	CString strTmp;
 	strTmp.Format(_T("%d 객체가 생성되었습니다."), objectID);
@@ -464,7 +442,6 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 	objectID += 1;
 	cstmp.Format("%d", objectID);
 	m_cvEditObjectID.SetWindowText(cstmp);
-
 
 	// 타입별 curID 값 증가 [7/29/2010 boxface]
 	switch (m_cvCbxObjectType.GetCurSel())
@@ -485,8 +462,6 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 		break;
 	}
 
-
-
 	// GUI 초기화 [7/29/2010 boxface]
 	m_cvCbxSubObjectList.ResetContent();
 	m_cvCbxDecoyList.ResetContent();
@@ -496,10 +471,8 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 	m_vDecoyList.clear();
 
 	cstmp.Format("TUBE NUM : %d", m_vTorpedoList.size() + 1);
-	m_cvTxtTubeNum.SetWindowText(cstmp); 
+	m_cvTxtTubeNum.SetWindowText(cstmp);
 }
-
-
 
 void CTestFrameworkDlg::OnDestroy()
 {
@@ -525,7 +498,6 @@ void CTestFrameworkDlg::OnDestroy()
 	m_ListenSocket.ShutDown();
 	m_ListenSocket.Close();
 }
-
 
 void CTestFrameworkDlg::OnCbnSelchangeComboType()
 {
@@ -555,14 +527,12 @@ void CTestFrameworkDlg::OnCbnSelchangeComboType()
 	CString cstmp;
 	cstmp.Format(_T("%d"), objectID);
 
-
 	m_cvEditObjectID.SetWindowText(cstmp);
-
 
 	// 이미지 타입정보 업데이트 [7/30/2010 boxface]
 	m_cvCbxPlatformImgList.ResetContent();
 	int i, count = m_length.size();
-	for (i = 0; i<count; i++)
+	for (i = 0; i < count; i++)
 	{
 		if (m_length[i].type != m_cvCbxObjectType.GetCurSel())
 		{
@@ -570,21 +540,17 @@ void CTestFrameworkDlg::OnCbnSelchangeComboType()
 		}
 
 		int j, count0 = m_length[i].m_modelLength.size();
-		for (j = 0; j<count0; j++)
+		for (j = 0; j < count0; j++)
 		{
-			m_cvCbxPlatformImgList.InsertString(j,(LPCTSTR)m_length[i].m_modelLength[j].modelName);
+			m_cvCbxPlatformImgList.InsertString(j, (LPCTSTR)m_length[i].m_modelLength[j].modelName);
 		}
 	}
 
 	m_cvCbxPlatformImgList.SetCurSel(0);
-
-
 }
-
 
 void CTestFrameworkDlg::readModelData()
 {
-
 	FILE *fp = fopen("ModelLength.dat", "r");
 	int count = 0;
 
@@ -621,12 +587,9 @@ void CTestFrameworkDlg::readModelData()
 
 				m_length[count - 1].m_modelLength.push_back(width);
 
-
-
 				//dhPrint("%f %f %f\n" , width.width , width.length , width.height);
 			}
 		}
-
 
 		std::vector<_ModelLength>::iterator ModelLengthIt = m_length.begin();
 		while (ModelLengthIt != m_length.end())
@@ -635,7 +598,7 @@ void CTestFrameworkDlg::readModelData()
 			while (WidthLengthHeightIt != (*ModelLengthIt).m_modelLength.end())
 			{
 				//dhPrint("Model Name : %s %f %f %f %d",
-				//	(*WidthLengthHeightIt).modelName, 
+				//	(*WidthLengthHeightIt).modelName,
 				//	(*WidthLengthHeightIt).width , (*WidthLengthHeightIt).length , (*WidthLengthHeightIt).height,
 				//	(*WidthLengthHeightIt).nfx);
 				for (int k = 0; k < (*WidthLengthHeightIt).nfx; k++)
@@ -651,7 +614,6 @@ void CTestFrameworkDlg::readModelData()
 
 		fclose(fp);
 	}
-
 }
 
 void CTestFrameworkDlg::OnCbnSelchangeComboTType()
@@ -664,7 +626,7 @@ void CTestFrameworkDlg::OnCbnSelchangeComboTType()
 	{
 	case 0:
 	{
-		for (i = 0; i<count; i++)
+		for (i = 0; i < count; i++)
 		{
 			if (m_length[i].type != OBJECT_TYPE_TORPEDO)
 			{
@@ -672,7 +634,7 @@ void CTestFrameworkDlg::OnCbnSelchangeComboTType()
 			}
 
 			int j, count0 = m_length[i].m_modelLength.size();
-			for (j = 0; j<count0; j++)
+			for (j = 0; j < count0; j++)
 			{
 				m_cvCbxImgType.InsertString(j, m_length[i].m_modelLength[j].modelName);
 			}
@@ -681,7 +643,7 @@ void CTestFrameworkDlg::OnCbnSelchangeComboTType()
 	break;
 	case 1:
 	{
-		for (i = 0; i<count; i++)
+		for (i = 0; i < count; i++)
 		{
 			if (m_length[i].type != OBJECT_TYPE_TORPEDO)
 			{
@@ -689,7 +651,7 @@ void CTestFrameworkDlg::OnCbnSelchangeComboTType()
 			}
 
 			int j, count0 = m_length[i].m_modelLength.size();
-			for (j = 0; j<count0; j++)
+			for (j = 0; j < count0; j++)
 			{
 				m_cvCbxImgType.InsertString(j, m_length[i].m_modelLength[j].modelName);
 			}
@@ -704,15 +666,13 @@ void CTestFrameworkDlg::OnCbnSelchangeComboTType()
 	m_cvCbxImgType.SetCurSel(0);
 }
 
-
 void CTestFrameworkDlg::OnCbnSelchangeComboDType()
 {
 	m_cvCbxDecoyImgType.ResetContent();
 
 	int i, count = m_length.size();
 
-
-	for (i = 0; i<count; i++)
+	for (i = 0; i < count; i++)
 	{
 		if (m_length[i].type != OBJECT_TYPE_DECOY)
 		{
@@ -720,7 +680,7 @@ void CTestFrameworkDlg::OnCbnSelchangeComboDType()
 		}
 
 		int j, count0 = m_length[i].m_modelLength.size();
-		for (j = 0; j<count0; j++)
+		for (j = 0; j < count0; j++)
 		{
 			m_cvCbxDecoyImgType.InsertString(j, m_length[i].m_modelLength[j].modelName);
 		}
@@ -728,7 +688,6 @@ void CTestFrameworkDlg::OnCbnSelchangeComboDType()
 
 	m_cvCbxDecoyImgType.SetCurSel(0);
 }
-
 
 void CTestFrameworkDlg::OnBnClickedButtonAddTorpedo()
 {
@@ -774,7 +733,6 @@ void CTestFrameworkDlg::OnBnClickedButtonAddTorpedo()
 	m_cvTxtTubeNum.SetWindowText(cstmp);
 }
 
-
 void CTestFrameworkDlg::OnBnClickedButtonAddDecoy()
 {
 	CString cstmp, csDecoyID;
@@ -791,7 +749,6 @@ void CTestFrameworkDlg::OnBnClickedButtonAddDecoy()
 	m_cvCbxDecoyList.SetCurSel(m_cvCbxDecoyList.GetCount() - 1);
 	m_cvCbxDecoyList.UpdateData();
 
-
 	SUB_OBJECT_INFO pDecoy;
 
 	pDecoy.objectID = objectID;
@@ -800,10 +757,56 @@ void CTestFrameworkDlg::OnBnClickedButtonAddDecoy()
 
 	m_vDecoyList.push_back(pDecoy);
 
-
 	SetCurDecoyID(GetCurDecoyID() + 1);
 
 	objectID = GetCurDecoyID() + 4000;
 	cstmp.Format("%d", objectID);
 	m_cvEditDecoyID.SetWindowText(cstmp);
+}
+
+void CTestFrameworkDlg::OnBnClickedButtonDelObject()
+{
+	CString cstmp;
+	m_cvCbxObjectList.GetLBText(m_cvCbxObjectList.GetCurSel(), cstmp);
+
+	int objectID = atoi(cstmp);
+
+	// 객체 정보 네트워크로 전달 [6/15/2010 boxface]
+	//////////////////////////////////////////////////////////////////////////
+	EVENT_OBJECT_CONTROL sendData;
+	memset(&sendData, 0x00, sizeof(EVENT_OBJECT_CONTROL));
+
+	sendData.type = MSG_CODE_EVENT_OBJECT_CONTROL_0x13;
+	sendData.length = sizeof(EVENT_OBJECT_CONTROL);
+
+	sendData.mode = OBJECT_CTRL_DELETE;
+	sendData.objectID = objectID;
+
+	char sendBuf[NETWORK_MAXSIZE];
+	memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_OBJECT_CONTROL));
+	//CMainFrame::getinstance()->SendEventData(sendBuf, sizeof(EVENT_OBJECT_CONTROL));
+
+	// 객체정보 내부 메모리에 전달 [6/15/2010 boxface]
+	//////////////////////////////////////////////////////////////////////////
+	m_pObjectManager.delObject(objectID);
+	deleteObject(objectID);
+}
+
+void CTestFrameworkDlg::deleteObject(int objectID)
+{
+	int curObjectID;
+	CString cstmp;
+
+	int count = m_cvCbxObjectList.GetCount();
+	for (int i = 0; i< count; i++)
+	{
+		m_cvCbxObjectList.GetLBText(i, cstmp);
+		curObjectID = atoi(cstmp);
+		if (objectID == curObjectID)
+		{
+			m_cvCbxObjectList.DeleteString(i);
+			m_cvCbxObjectList.SetCurSel(0);
+			return;
+		}
+	}
 }

@@ -6,7 +6,6 @@
 #include "TestFrameworkDlg.h"
 #include "afxdialogex.h"
 #include "objectBase.h"
-#include "ClientSocket.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -96,6 +95,9 @@ BEGIN_MESSAGE_MAP(CTestFrameworkDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_ADD_TORPEDO, &CTestFrameworkDlg::OnBnClickedButtonAddTorpedo)
 	ON_BN_CLICKED(IDC_BUTTON_ADD_DECOY, &CTestFrameworkDlg::OnBnClickedButtonAddDecoy)
 	ON_BN_CLICKED(IDC_BUTTON_DEL_OBJECT, &CTestFrameworkDlg::OnBnClickedButtonDelObject)
+	ON_BN_CLICKED(IDC_BUTTON_SIM_START, &CTestFrameworkDlg::OnBnClickedButtonSimStart)
+	ON_BN_CLICKED(IDC_BUTTON_SIM_PAUSE, &CTestFrameworkDlg::OnBnClickedButtonSimPause)
+	ON_BN_CLICKED(IDC_BUTTON_SIM_STOP, &CTestFrameworkDlg::OnBnClickedButtonSimStop)
 END_MESSAGE_MAP()
 
 // CTestFrameworkDlg 메시지 처리기
@@ -174,19 +176,6 @@ BOOL CTestFrameworkDlg::OnInitDialog()
 	m_cvEditTorpedoID.SetWindowText(_T("3000"));
 	m_cvEditDecoyID.SetWindowText(_T("4000"));
 
-	// 소켓 초기화
-
-	if (m_ListenSocket.Create(21000, SOCK_STREAM))
-	{
-		if (!m_ListenSocket.Listen())
-		{
-			AfxMessageBox(_T("ERROR: Listen() return FALSE"));
-		}
-	}
-	else
-	{
-		AfxMessageBox(_T("ERROR: Failed to create server socket!"));
-	}
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -242,6 +231,8 @@ HCURSOR CTestFrameworkDlg::OnQueryDragIcon()
 
 void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 {
+	
+//	TCPFunc *pM = TCPFunc::getinstance();
 	CString cstmp;
 
 	int objectID, type, imageType, iIFF;
@@ -305,6 +296,49 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 	torpedoNo = m_vTorpedoList.size();
 	decoyNo = m_vDecoyList.size();
 
+	// 객체 정보 네트워크로 전달 [6/15/2010 boxface]
+	//////////////////////////////////////////////////////////////////////////
+	// 네트워크 전달
+
+	EVENT_OBJECT_CONTROL sendData;
+	memset(&sendData, 0x00, sizeof(EVENT_OBJECT_CONTROL));
+
+	sendData.type = MSG_CODE_EVENT_OBJECT_SETUP_0x12;
+	sendData.length = sizeof(EVENT_OBJECT_CONTROL);
+
+	sendData.mode = OBJECT_CTRL_CREATE;
+	sendData.objectID = objectID;
+	sendData.objectType = type;
+	sendData.status = m_cvCbxStatus.GetCurSel();
+	sendData.imageType = imageType;
+	sendData.IFF = iIFF;
+
+	sendData.x = x;
+	sendData.y = y;
+	sendData.z = z;
+	sendData.u = 0;
+	sendData.v = 0;
+	sendData.w = 0;
+	sendData.h = h;
+	sendData.p = p;
+	sendData.r = r;
+
+
+	sendData.latitude = latitude;
+	sendData.longitude = longitude;
+	sendData.depth = z;
+	sendData.range = 0;
+	sendData.elevation = 0;
+	sendData.bearing = 0;
+	sendData.course = 0;
+	sendData.pathAngle = 0;
+	sendData.speed = 0;
+
+	char sendBuf[NETWORK_MAXSIZE];
+	memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_OBJECT_CONTROL));
+	
+	m_TCPFunc.SendEventData(sendBuf, sizeof(EVENT_OBJECT_CONTROL));
+//	pM->SendEventData(sendBuf, sizeof(EVENT_OBJECT_CONTROL));
 	// 객체정보 내부 메모리에 전달 [6/15/2010 boxface]
 	//////////////////////////////////////////////////////////////////////////
 
@@ -330,20 +364,14 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 
 		pObject.m_vTorpedoList.push_back(pTorpedo);
 
-		// 네트워크 전달
-		//m_ListenSocket.Send((LPVOID)(LPCTSTR)m_strMessage,
-			//m_strMessage.GetLength() * 2);
-		TCHAR szBuffer[1024];
-		_itot_s(objectID, szBuffer, 10);
-		m_ListenSocket.SendChatDataAll(szBuffer);
 
 		// 네트워크로 무장정보 전달 [8/16/2010 boxface]
 		//////////////////////////////////////////////////////////////////////////
-		/*
+		
 		EVENT_TORPEDO_SETUP sendData;
 		memset(&sendData, 0x00, sizeof(EVENT_TORPEDO_SETUP));
 
-		sendData.type = MSG_CODE_EVENT_TORPEDO_SETUP_0x14;
+		sendData.type = MSG_CODE_EVENT_TORPEDO_SETUP_0x13;
 		sendData.length = sizeof(EVENT_TORPEDO_SETUP);
 
 		sendData.objectID = pTorpedo.iObjectID;
@@ -381,7 +409,7 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 
 		char sendBuf[NETWORK_MAXSIZE];
 		memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_TORPEDO_SETUP));
-		pM->SendEventData(sendBuf, sizeof(EVENT_TORPEDO_SETUP)); */
+	//	pM->SendEventData(sendBuf, sizeof(EVENT_TORPEDO_SETUP)); 
 		//////////////////////////////////////////////////////////////////////////
 	}
 
@@ -396,7 +424,7 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 		pDecoy.iImageType = m_vDecoyList[i].imageType;
 		pDecoy.bFired = false;
 
-		pObject.m_vDecoyList.push_back(pDecoy);
+		pObject.m_vDecoyList.push_back(pDecoy);djel
 
 		// 네트워크로 무장정보 전달 [8/16/2010 boxface]
 		//////////////////////////////////////////////////////////////////////////
@@ -477,26 +505,6 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 void CTestFrameworkDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
-
-	POSITION pos;
-	pos = m_ListenSocket.m_ptrClientSocketList.GetHeadPosition();
-	CClientSocket* pClient = NULL;
-
-	while (pos != NULL)
-	{
-		pClient = (CClientSocket*)
-			m_ListenSocket.m_ptrClientSocketList.GetNext(pos);
-		if (pClient != NULL)
-		{
-			pClient->ShutDown();
-			pClient->Close();
-
-			delete pClient;
-		}
-	}
-
-	m_ListenSocket.ShutDown();
-	m_ListenSocket.Close();
 }
 
 void CTestFrameworkDlg::OnCbnSelchangeComboType()
@@ -776,7 +784,7 @@ void CTestFrameworkDlg::OnBnClickedButtonDelObject()
 	EVENT_OBJECT_CONTROL sendData;
 	memset(&sendData, 0x00, sizeof(EVENT_OBJECT_CONTROL));
 
-	sendData.type = MSG_CODE_EVENT_OBJECT_CONTROL_0x13;
+//	sendData.type = MSG_CODE_EVENT_OBJECT_CONTROL_0x13;
 	sendData.length = sizeof(EVENT_OBJECT_CONTROL);
 
 	sendData.mode = OBJECT_CTRL_DELETE;
@@ -809,4 +817,23 @@ void CTestFrameworkDlg::deleteObject(int objectID)
 			return;
 		}
 	}
+}
+
+
+
+void CTestFrameworkDlg::OnBnClickedButtonSimStart()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CTestFrameworkDlg::OnBnClickedButtonSimPause()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+}
+
+
+void CTestFrameworkDlg::OnBnClickedButtonSimStop()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }

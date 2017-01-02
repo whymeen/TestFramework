@@ -10,19 +10,31 @@
 //////////////////////////////////////////////////////////////////////////
 
 
+// 운용통제 -> 모델 제어
+
+#define MSG_CODE_EVENT_SIMULATION_CONTROL_0x11				0x11
+#define MSG_CODE_EVENT_OBJECT_SETUP_0x12					0x12
+#define MSG_CODE_EVENT_TORPEDO_SETUP_0x13					0x13
+#define MSG_CODE_EVENT_DECOY_SETUP_0x14						0x14
+
+
+// 모델 제어 -> 운용 통제
+
+#define MSG_CODE_OBJECT_UPDATE_0x21							0x21
+
 
 // 운용통제 -> 전체 시스템
-#define MSG_CODE_EVENT_SIMULATION_CONTROL_0x11				0x11
-#define MSG_CODE_EVENT_SCENARIO_SETUP_0x12					0x12
-#define MSG_CODE_EVENT_OBJECT_CONTROL_0x13					0x13
-#define MSG_CODE_EVENT_TORPEDO_SETUP_0x14					0x14
-#define MSG_CODE_EVENT_DECOY_SETUP_0x15						0x15
+//#define MSG_CODE_EVENT_SIMULATION_CONTROL_0x11				0x11
+//#define MSG_CODE_EVENT_SCENARIO_SETUP_0x12					0x12
+//#define MSG_CODE_EVENT_OBJECT_CONTROL_0x13					0x13
+//#define MSG_CODE_EVENT_TORPEDO_SETUP_0x14					    0x14
+//#define MSG_CODE_EVENT_DECOY_SETUP_0x15						0x15
 #define MSG_CODE_EVENT_SENSOR_SETUP_0x16					0x16
 #define MSG_CODE_EVENT_ENV_SETUP_0x17						0x17
 #define MSG_CODE_EVENT_LOGIN_0x18							0x18
 
 // 전체 시스템 -> 운용통제
-#define MSG_CODE_UPDATE_BIT_0x21							0x21
+//#define MSG_CODE_UPDATE_BIT_0x21							0x21
 #define MSG_CODE_EVENT_SCENARIO_SETUP_REPLY_0x22			0x22
 #define MSG_CODE_UPDATE_OBJECT_CONTROL_0x23					0x23
 #define MSG_CODE_EVENT_LOGIN_REPLY_0x24						0x24

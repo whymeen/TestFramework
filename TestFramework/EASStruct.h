@@ -39,8 +39,8 @@ typedef struct _ICD_HEADER
 {
 	Sdbl64	H_Timestamp;
 	Uint16	H_Length;
-	Uint8	H_Sender_Equip_Code;	//메시지 송신장비 0:All 1:운용통제, 2:전장가시화, 3:운용함, 4:차기중어뢰, 5:표적함, 6:전술객체
-	Uint8	H_Receiver_Equip_Code;	//메시지 수신장비 0:All 1:운용통제, 2:전장가시화, 3:운용함, 4:차기중어뢰, 5:표적함, 6:전술객체
+	Uint8	H_Sender_Equip_Code;	//메시지 송신장비 0:All 1:운용통제, 2:제어모델
+	Uint8	H_Receiver_Equip_Code;	//메시지 수신장비 0:All 1:운용통제, 2:제어모델
 
 } ICD_HEADER;
 
@@ -59,28 +59,10 @@ typedef struct _EVENT_SIMULATION_CONTROL_0x11
 	Uint8 length;
 
 	Uint8 control_code;
-	Uint8 simspeed;
 
 } EVENT_SIMULATION_CONTROL;
 
-
-typedef struct _EVENT_SCENARIO_SETUP_0x12
-{
-	Uint8 type;
-	Uint8 length;
-
-	Uint8 ownship_Num;
-	Uint8 targetship_Num;
-	Uint8 torpedo_Num;
-	Uint8 decoy_Num;
-	Uint8 sensor_Num;
-	Uint8 reserved0;
-	Uint16 reserved1;
-
-} EVENT_SCENARIO_SETUP;
-
-
-typedef struct _EVENT_OBJECT_CONTROL_0x13
+typedef struct _EVENT_OBJECT_CONTROL_0x12
 {
 	Uint8 type;
 	Uint8 length;
@@ -94,27 +76,35 @@ typedef struct _EVENT_OBJECT_CONTROL_0x13
 	Uint8 unused13_15;
 
 	Uint8 imageType;
-	Uint8 targetID;
-
-	Sdbl64 latitude;
-	Sdbl64 longitude;
-	Sdbl64 depth;
-
-	Sdbl64 speed;
-	Sdbl64 course;
 
 	Sdbl64 x;
 	Sdbl64 y;
 	Sdbl64 z;
 
+	Sdbl64 u;
+	Sdbl64 v;
+	Sdbl64 w;
+
 	Sdbl64 h;
 	Sdbl64 p;
 	Sdbl64 r;
 
+	Sdbl64 latitude;
+	Sdbl64 longitude;
+	Sdbl64 depth;
+
+	Sdbl64 range;
+	Sdbl64 elevation;
+	Sdbl64 bearing;
+
+	Sdbl64 course;
+	Sdbl64 pathAngle;
+	Sdbl64 speed;
+
 } EVENT_OBJECT_CONTROL;
 
 
-typedef struct _EVENT_TORPEDO_SETUP_0x14
+typedef struct _EVENT_TORPEDO_SETUP_0x13
 {
 	Uint8 type;
 	Uint8 length;
@@ -145,7 +135,7 @@ typedef struct _EVENT_TORPEDO_SETUP_0x14
 } EVENT_TORPEDO_SETUP;
 
 
-typedef struct _EVENT_DECOY_SETUP_0x15
+typedef struct _EVENT_DECOY_SETUP_0x14
 {
 	Uint8 type;
 	Uint8 length;
@@ -170,6 +160,48 @@ typedef struct _EVENT_DECOY_SETUP_0x15
 	Uint16 reserved1;
 
 } EVENT_DECOY_SETUP;
+
+typedef struct _UPDATE_0x21
+{
+	Uint8 type;
+	Uint8 length;
+
+	Uint16 objectID;
+
+	Uint8 objectType;
+	Uint8 mode : 2;		// 0:create, 1:update, 2:delete [6/15/2010 boxface]
+	Uint8 IFF : 1;		// 0:아군, 1:적군
+	Uint8 status : 2;
+	Uint8 unused13_15;
+
+	Uint8 imageType;
+
+	Sdbl64 x;
+	Sdbl64 y;
+	Sdbl64 z;
+
+	Sdbl64 u;
+	Sdbl64 v;
+	Sdbl64 w;
+
+	Sdbl64 h;
+	Sdbl64 p;
+	Sdbl64 r;
+
+	Sdbl64 latitude;
+	Sdbl64 longitude;
+	Sdbl64 depth;
+
+	Sdbl64 range;
+	Sdbl64 elevation;
+	Sdbl64 bearing;
+
+	Sdbl64 course;
+	Sdbl64 pathAngle;
+	Sdbl64 speed;
+
+} UPDATE;
+
 
 
 typedef struct _EVENT_SENSOR_SETUP_0x16

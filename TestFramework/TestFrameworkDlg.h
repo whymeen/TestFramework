@@ -7,6 +7,7 @@
 #include "ListenSocket.h"
 #include "vector"
 #include "ObjectMananger.h"
+#include "TCPFunc.h"
 
 struct _WidthLengthHeight
 {
@@ -34,6 +35,7 @@ class CTestFrameworkDlg : public CDialogEx
 public:
 	CTestFrameworkDlg(CWnd* pParent = NULL);	// 표준 생성자입니다.
 	CListenSocket		m_ListenSocket;
+	TCPFunc	m_TCPFunc;
 	// 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_TESTFRAMEWORK_DIALOG };
@@ -116,4 +118,8 @@ public:
 public:
 	afx_msg void OnBnClickedButtonDelObject();
 	CComboBox m_cvCbxObjectList;
+	afx_msg void OnBnClickedButton2();
+	afx_msg void OnBnClickedButtonSimStart();
+	afx_msg void OnBnClickedButtonSimPause();
+	afx_msg void OnBnClickedButtonSimStop();
 };

@@ -6,6 +6,8 @@
 #include "TestFrameworkDlg.h"
 #include "afxdialogex.h"
 #include "objectBase.h"
+#include <fstream>
+#include <time.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

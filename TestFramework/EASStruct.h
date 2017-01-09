@@ -47,7 +47,7 @@ typedef struct _ICD_HEADER
 
 typedef struct _CODE_HEADER
 {
-	Uint8	C_Code;
+	Uint16	H_Length;
 	Uint8	C_Length;
 
 } CODE_HEADER;

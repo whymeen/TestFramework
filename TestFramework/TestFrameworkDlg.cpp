@@ -179,6 +179,13 @@ BOOL CTestFrameworkDlg::OnInitDialog()
 	m_cvEditDecoyID.SetWindowText(_T("4000"));
 
 
+	///////////////////////////////서버 초기화
+	m_TCPFunc.m_pTCPServer = NULL;
+	m_TCPFunc.m_pTCPClient = NULL;
+
+	m_TCPFunc.initNetwork();
+
+
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
 

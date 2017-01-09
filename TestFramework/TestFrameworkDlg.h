@@ -34,8 +34,6 @@ class CTestFrameworkDlg : public CDialogEx
 	// 생성입니다.
 public:
 	CTestFrameworkDlg(CWnd* pParent = NULL);	// 표준 생성자입니다.
-	CListenSocket		m_ListenSocket;
-	TCPFunc	m_TCPFunc;
 	// 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_TESTFRAMEWORK_DIALOG };
@@ -55,6 +53,7 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
+	TCPFunc	m_TCPFunc;
 	afx_msg void OnBnClickedButtonAddObject();
 	CEdit m_cvEditObjectID;
 	CEdit m_cvEditTorpedoID;

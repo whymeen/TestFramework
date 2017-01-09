@@ -4,9 +4,7 @@
 
 TCPFunc::TCPFunc()
 {
-	m_pTCPServer = NULL;
-	m_pTCPClient = NULL;
-	initNetwork();
+	m_iCurSystemCode = 1;
 }
 
 
@@ -46,14 +44,14 @@ void TCPFunc::SendEventData(char* packetData, int packetDataSize)
 {
 	char sendBuf[NETWORK_MAXSIZE];
 
-	CODE_HEADER header;
-	int headsize = sizeof(CODE_HEADER);
-	memset(&header, 0x00, sizeof(CODE_HEADER));
+	ICD_HEADER header;
+	int headsize = sizeof(ICD_HEADER);
+	memset(&header, 0x00, sizeof(ICD_HEADER));
 	int totsize = headsize + packetDataSize;
 
-	//header.C_TimeStamp = GetTimeStamp();
-	//header.C_Length = totsize / 4;
-	//header.C_SenderCode = m_iCurSystemCode;
+	header.H_Timestamp = GetTimeStamp();
+	header.H_Length = totsize / 4;
+	header.H_Sender_Equip_Code = m_iCurSystemCode;
 
 	//header.C_TImeHour = 7;
 	//header.C_TImeMinute = 12;
@@ -79,9 +77,9 @@ void TCPFunc::SendUpdateData(char* packetData, int packetDataSize)
 {
 	char sendBuf[NETWORK_MAXSIZE];
 
-	CODE_HEADER header;
-	memset(&header, 0x00, sizeof(CODE_HEADER));
-	int headsize = sizeof(CODE_HEADER);
+	ICD_HEADER header;
+	memset(&header, 0x00, sizeof(ICD_HEADER));
+	int headsize = sizeof(ICD_HEADER);
 	int totsize = headsize + packetDataSize;
 
 //	header.C_TimeStamp = GetTimeStamp();
@@ -133,11 +131,11 @@ void TCPFunc::getEventMsg(char *msg, void *param, int dataSize)
 	while ((bufIndex + 1) < dataSize)
 	{
 
-		CODE_HEADER header;
+		ICD_HEADER header;
 
-		memcpy(&header, &msg[bufIndex], sizeof(CODE_HEADER));
+		memcpy(&header, &msg[bufIndex], sizeof(ICD_HEADER));
 //		dTimeStamp = header.C_TimeStamp;
-		iLength = header.C_Length;
+		iLength = header.H_Length;
 
 		// 패킷 분석 완료여부 판단
 		/////////////////////////////////////////////////////////////
@@ -154,7 +152,7 @@ void TCPFunc::getEventMsg(char *msg, void *param, int dataSize)
 		}
 		/////////////////////////////////////////////////////////////
 
-		bufIndex += sizeof(CODE_HEADER);
+		bufIndex += sizeof(ICD_HEADER);
 
 		unsigned char c, l;
 		memcpy(&c, &msg[bufIndex], 1);
@@ -227,4 +225,18 @@ void TCPFunc::readConfigure(void)
 
 		fclose(fp);
 	}
+}
+
+const double TCPFunc::GetTimeStamp()
+{
+	SYSTEMTIME sysTime;
+	//GetSystemTime(&sysTime);		// 국제시간			[8/5/2010 boxface]
+	GetLocalTime(&sysTime);			// 현지 지역시간	[8/5/2010 boxface]
+	CString csTimeStamp;
+	csTimeStamp.Format("%04d%02d%02d%02d%02d%02d%03d",
+		sysTime.wYear, sysTime.wMonth, sysTime.wDay,
+		sysTime.wHour, sysTime.wMinute, sysTime.wSecond,
+		sysTime.wMilliseconds);
+
+	return atof(csTimeStamp);
 }

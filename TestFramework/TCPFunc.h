@@ -45,7 +45,7 @@ public:
 	unsigned char ip[4];
 	unsigned short port1, port2;
 
-
+	const double GetTimeStamp();
 
 };
 

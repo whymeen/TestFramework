@@ -81,6 +81,9 @@ public:
 	CEdit m_cvEditOrgLon;
 	CEdit m_cvEditLat;
 	CEdit m_cvEditLong;
+	CButton m_cvBtnStart;
+	CButton m_cvBtnPause;
+	CButton m_cvBtnStop;
 	CObjectMananger m_pObjectManager;
 	std::vector<SUB_OBJECT_INFO>	m_vTorpedoList;
 	std::vector<SUB_OBJECT_INFO>	m_vDecoyList;
@@ -107,6 +110,7 @@ public:
 
 	void readModelData();
 	void deleteObject(int objectID);
+	void sendSimCtrl(int mode);
 
 
 	afx_msg void OnCbnSelchangeComboTType();

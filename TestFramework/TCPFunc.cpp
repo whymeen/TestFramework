@@ -82,9 +82,9 @@ void TCPFunc::SendUpdateData(char* packetData, int packetDataSize)
 	int headsize = sizeof(ICD_HEADER);
 	int totsize = headsize + packetDataSize;
 
-//	header.C_TimeStamp = GetTimeStamp();
-//	header.C_Length = totsize / 4;
-//	header.C_SenderCode = m_iCurSystemCode;
+	header.H_Timestamp = GetTimeStamp();
+	header.H_Length = totsize / 4;
+	header.H_Sender_Equip_Code = m_iCurSystemCode;
 
 //	header.C_TImeHour = 7;
 //	header.C_TImeMinute = 12;

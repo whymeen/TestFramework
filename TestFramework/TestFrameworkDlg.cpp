@@ -83,6 +83,9 @@ void CTestFrameworkDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_LAT, m_cvEditLat);
 	DDX_Control(pDX, IDC_EDIT_LONG, m_cvEditLong);
 	DDX_Control(pDX, IDC_COMBO_LIST_OBJECT, m_cvCbxObjectList);
+	DDX_Control(pDX, IDC_BUTTON_SIM_START, m_cvBtnStart);
+	DDX_Control(pDX, IDC_BUTTON_SIM_PAUSE, m_cvBtnPause);
+	DDX_Control(pDX, IDC_BUTTON_SIM_STOP, m_cvBtnStop);
 }
 
 BEGIN_MESSAGE_MAP(CTestFrameworkDlg, CDialogEx)
@@ -155,10 +158,8 @@ BOOL CTestFrameworkDlg::OnInitDialog()
 
 	m_cvCbxTorpedoType.InsertString(0, "중어뢰");
 	m_cvCbxTorpedoType.InsertString(1, "경어뢰");
-	m_cvCbxTorpedoType.SetCurSel(0);
 
 	m_cvCbxDecoyType.InsertString(0, "계류식");
-	m_cvCbxDecoyType.SetCurSel(0);
 
 	m_iSubmarineID = 0;
 	m_iSurfaceshipID = 0;
@@ -184,6 +185,13 @@ BOOL CTestFrameworkDlg::OnInitDialog()
 	m_TCPFunc.m_pTCPClient = NULL;
 
 	m_TCPFunc.initNetwork();
+
+	//////////////////////////////////////////
+	//시뮬레이션 버튼 초기화
+	m_cvBtnStart.EnableWindow(true);
+	m_cvBtnPause.EnableWindow(false);
+	m_cvBtnStop.EnableWindow(false);
+
 
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
@@ -241,7 +249,6 @@ HCURSOR CTestFrameworkDlg::OnQueryDragIcon()
 void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 {
 	
-//	TCPFunc *pM = TCPFunc::getinstance();
 	CString cstmp;
 
 	int objectID, type, imageType, iIFF;
@@ -347,7 +354,6 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 	memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_OBJECT_CONTROL));
 	
 	m_TCPFunc.SendEventData(sendBuf, sizeof(EVENT_OBJECT_CONTROL));
-//	pM->SendEventData(sendBuf, sizeof(EVENT_OBJECT_CONTROL));
 	// 객체정보 내부 메모리에 전달 [6/15/2010 boxface]
 	//////////////////////////////////////////////////////////////////////////
 
@@ -360,9 +366,10 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 
 	pObject.setTranslate(x, y, z);
 	pObject.setRotate(h, p, r);
+
+	// 어뢰 정보 내부 메모리에 전달 
 	for (i = 0; i < torpedoNo; i++)
 	{
-		// 내부 메모리에 전달 [8/16/2010 boxface]
 		STRUCT_TORPEDO_INFO pTorpedo;
 		memset(&pTorpedo, 0x00, sizeof(STRUCT_TORPEDO_INFO));
 
@@ -374,7 +381,7 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 		pObject.m_vTorpedoList.push_back(pTorpedo);
 
 
-		// 네트워크로 무장정보 전달 [8/16/2010 boxface]
+		// 네트워크로 무장정보 전달 
 		//////////////////////////////////////////////////////////////////////////
 		
 		EVENT_TORPEDO_SETUP sendData;
@@ -418,13 +425,13 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 
 		char sendBuf[NETWORK_MAXSIZE];
 		memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_TORPEDO_SETUP));
-	//	pM->SendEventData(sendBuf, sizeof(EVENT_TORPEDO_SETUP)); 
-		//////////////////////////////////////////////////////////////////////////
+		m_TCPFunc.SendEventData(sendBuf, sizeof(EVENT_TORPEDO_SETUP)); 
+	
 	}
-
-	/*for (i = 0; i<decoyNo; i++)
+	//////////////////////////////////////////////////////////////////////////
+	//기만기 정보 내부 메모리에 전달
+	for (i = 0; i<decoyNo; i++)
 	{
-		// 내부 메모리에 전달 [8/16/2010 boxface]
 		STRUCT_DECOY_INFO pDecoy;
 		memset(&pDecoy, 0x00, sizeof(STRUCT_DECOY_INFO));
 
@@ -433,14 +440,14 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 		pDecoy.iImageType = m_vDecoyList[i].imageType;
 		pDecoy.bFired = false;
 
-		pObject.m_vDecoyList.push_back(pDecoy);djel
+		pObject.m_vDecoyList.push_back(pDecoy);
 
 		// 네트워크로 무장정보 전달 [8/16/2010 boxface]
 		//////////////////////////////////////////////////////////////////////////
 		EVENT_DECOY_SETUP sendData;
 		memset(&sendData, 0x00, sizeof(EVENT_DECOY_SETUP));
 
-		sendData.type = MSG_CODE_EVENT_DECOY_SETUP_0x15;
+		sendData.type = MSG_CODE_EVENT_DECOY_SETUP_0x14;
 		sendData.length = sizeof(EVENT_DECOY_SETUP);
 
 		sendData.objectID = pDecoy.iObjectID;
@@ -465,11 +472,11 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 
 		char sendBuf[NETWORK_MAXSIZE];
 		memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_TORPEDO_SETUP));
-		pM->SendEventData(sendBuf, sizeof(EVENT_TORPEDO_SETUP));
+		m_TCPFunc.SendEventData(sendBuf, sizeof(EVENT_TORPEDO_SETUP));
 		//////////////////////////////////////////////////////////////////////////
 	}
 
-	m_pObjectManager.addObject(pObject);*/
+	m_pObjectManager.addObject(pObject);
 
 	CString strTmp;
 	strTmp.Format(_T("%d 객체가 생성되었습니다."), objectID);
@@ -788,12 +795,16 @@ void CTestFrameworkDlg::OnBnClickedButtonDelObject()
 
 	int objectID = atoi(cstmp);
 
+	cstmp.Format(_T("%d 객체가 삭제되었습니다."), objectID);
+	m_List.AddString(cstmp);
+	m_List.SetCurSel(m_List.GetCount() - 1);
+
 	// 객체 정보 네트워크로 전달 [6/15/2010 boxface]
 	//////////////////////////////////////////////////////////////////////////
 	EVENT_OBJECT_CONTROL sendData;
 	memset(&sendData, 0x00, sizeof(EVENT_OBJECT_CONTROL));
 
-//	sendData.type = MSG_CODE_EVENT_OBJECT_CONTROL_0x13;
+	sendData.type = MSG_CODE_EVENT_OBJECT_SETUP_0x12;
 	sendData.length = sizeof(EVENT_OBJECT_CONTROL);
 
 	sendData.mode = OBJECT_CTRL_DELETE;
@@ -801,7 +812,7 @@ void CTestFrameworkDlg::OnBnClickedButtonDelObject()
 
 	char sendBuf[NETWORK_MAXSIZE];
 	memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_OBJECT_CONTROL));
-	//CMainFrame::getinstance()->SendEventData(sendBuf, sizeof(EVENT_OBJECT_CONTROL));
+	m_TCPFunc.SendEventData(sendBuf, sizeof(EVENT_OBJECT_CONTROL));
 
 	// 객체정보 내부 메모리에 전달 [6/15/2010 boxface]
 	//////////////////////////////////////////////////////////////////////////
@@ -833,16 +844,50 @@ void CTestFrameworkDlg::deleteObject(int objectID)
 void CTestFrameworkDlg::OnBnClickedButtonSimStart()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	sendSimCtrl(SIMCTRL_START);
+
+	m_cvBtnStart.EnableWindow(false);
+	m_cvBtnPause.EnableWindow(true);
+	m_cvBtnStop.EnableWindow(true);
 }
 
 
 void CTestFrameworkDlg::OnBnClickedButtonSimPause()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	sendSimCtrl(SIMCTRL_PAUSE);
+
+	m_cvBtnStart.EnableWindow(true);
+	m_cvBtnPause.EnableWindow(false);
+	m_cvBtnStop.EnableWindow(true);
 }
 
 
 void CTestFrameworkDlg::OnBnClickedButtonSimStop()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	sendSimCtrl(SIMCTRL_STOP);
+
+	m_cvBtnStart.EnableWindow(true);
+	m_cvBtnPause.EnableWindow(false);
+	m_cvBtnStop.EnableWindow(false);
+}
+
+
+void CTestFrameworkDlg::sendSimCtrl(int mode)
+{
+	// 시뮬레이션 시작명령을 네트워크로 전달 [7/19/2010 boxface]
+	//////////////////////////////////////////////////////////////////////////
+	EVENT_SIMULATION_CONTROL sendData;
+	memset(&sendData, 0x00, sizeof(EVENT_SIMULATION_CONTROL));
+
+	sendData.type = MSG_CODE_EVENT_SIMULATION_CONTROL_0x11;
+	sendData.length = sizeof(EVENT_SIMULATION_CONTROL);
+
+	sendData.control_code = mode;
+
+	char sendBuf[NETWORK_MAXSIZE];
+	memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_SIMULATION_CONTROL));
+	m_TCPFunc.SendEventData(sendBuf, sizeof(EVENT_SIMULATION_CONTROL));
+	//////////////////////////////////////////////////////////////////////////
 }

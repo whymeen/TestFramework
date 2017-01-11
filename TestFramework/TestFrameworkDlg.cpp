@@ -185,14 +185,13 @@ BOOL CTestFrameworkDlg::OnInitDialog()
 	m_TCPFunc.m_pTCPClient = NULL;
 
 	m_TCPFunc.initNetwork();
+	m_TCPFunc.initMsgBuf();
 
 	//////////////////////////////////////////
 	//시뮬레이션 버튼 초기화
 	m_cvBtnStart.EnableWindow(true);
 	m_cvBtnPause.EnableWindow(false);
 	m_cvBtnStop.EnableWindow(false);
-
-
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -248,7 +247,6 @@ HCURSOR CTestFrameworkDlg::OnQueryDragIcon()
 
 void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 {
-	
 	CString cstmp;
 
 	int objectID, type, imageType, iIFF;
@@ -312,7 +310,7 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 	torpedoNo = m_vTorpedoList.size();
 	decoyNo = m_vDecoyList.size();
 
-	// 객체 정보 네트워크로 전달 [6/15/2010 boxface]
+	// 객체 정보 네트워크로 전달
 	//////////////////////////////////////////////////////////////////////////
 	// 네트워크 전달
 
@@ -354,7 +352,7 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 	memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_OBJECT_CONTROL));
 	
 	m_TCPFunc.SendEventData(sendBuf, sizeof(EVENT_OBJECT_CONTROL));
-	// 객체정보 내부 메모리에 전달 [6/15/2010 boxface]
+	// 객체정보 내부 메모리에 전달
 	//////////////////////////////////////////////////////////////////////////
 
 	CObjectBase pObject;
@@ -426,6 +424,7 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 		char sendBuf[NETWORK_MAXSIZE];
 		memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_TORPEDO_SETUP));
 		m_TCPFunc.SendEventData(sendBuf, sizeof(EVENT_TORPEDO_SETUP)); 
+		TRACE("%d 어뢰 전송 \n", sendData.objectID);
 	
 	}
 	//////////////////////////////////////////////////////////////////////////
@@ -442,7 +441,7 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 
 		pObject.m_vDecoyList.push_back(pDecoy);
 
-		// 네트워크로 무장정보 전달 [8/16/2010 boxface]
+		// 네트워크로 무장정보 전달
 		//////////////////////////////////////////////////////////////////////////
 		EVENT_DECOY_SETUP sendData;
 		memset(&sendData, 0x00, sizeof(EVENT_DECOY_SETUP));
@@ -471,8 +470,9 @@ void CTestFrameworkDlg::OnBnClickedButtonAddObject()
 		sendData.operationMode = 1;
 
 		char sendBuf[NETWORK_MAXSIZE];
-		memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_TORPEDO_SETUP));
-		m_TCPFunc.SendEventData(sendBuf, sizeof(EVENT_TORPEDO_SETUP));
+		memcpy(&sendBuf, (char*)&sendData, sizeof(EVENT_DECOY_SETUP));
+		m_TCPFunc.SendEventData(sendBuf, sizeof(EVENT_DECOY_SETUP));
+		TRACE("%d 기만기 전송", sendData.objectID);
 		//////////////////////////////////////////////////////////////////////////
 	}
 

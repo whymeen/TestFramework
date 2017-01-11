@@ -4,7 +4,6 @@
 #pragma once
 
 #include "afxwin.h"
-#include "ListenSocket.h"
 #include "vector"
 #include "ObjectMananger.h"
 #include "TCPFunc.h"

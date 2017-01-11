@@ -161,7 +161,7 @@ typedef struct _EVENT_DECOY_SETUP_0x14
 
 } EVENT_DECOY_SETUP;
 
-typedef struct _UPDATE_0x21
+typedef struct _UPDATE_OBJECT_0x21
 {
 	Uint8 type;
 	Uint8 length;
@@ -200,7 +200,7 @@ typedef struct _UPDATE_0x21
 	Sdbl64 pathAngle;
 	Sdbl64 speed;
 
-} UPDATE;
+} UPDATE_OBJECT;
 
 
 

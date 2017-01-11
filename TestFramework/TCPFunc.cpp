@@ -52,6 +52,7 @@ void TCPFunc::SendEventData(char* packetData, int packetDataSize)
 	header.H_Timestamp = GetTimeStamp();
 	header.H_Length = totsize / 4;
 	header.H_Sender_Equip_Code = m_iCurSystemCode;
+	header.H_Receiver_Equip_Code = 2;
 
 	//header.C_TImeHour = 7;
 	//header.C_TImeMinute = 12;
@@ -134,7 +135,7 @@ void TCPFunc::getEventMsg(char *msg, void *param, int dataSize)
 		ICD_HEADER header;
 
 		memcpy(&header, &msg[bufIndex], sizeof(ICD_HEADER));
-//		dTimeStamp = header.C_TimeStamp;
+		dTimeStamp = header.H_Timestamp;
 		iLength = header.H_Length;
 
 		// 패킷 분석 완료여부 판단
@@ -161,7 +162,7 @@ void TCPFunc::getEventMsg(char *msg, void *param, int dataSize)
 		type = c;
 		length = l;
 
-		TRACE("evenet message 신호 수신 type:[%#x], length:[%d] realSize[%d]\n", type, length, dataSize);
+		TRACE("evenet message 신호 수신 type:[%#x], timestamp:[%f], length:[%d] realSize[%d]\n", type, dTimeStamp, length, dataSize);
 
 		switch (type)
 		{
@@ -180,6 +181,19 @@ void TCPFunc::getEventMsg(char *msg, void *param, int dataSize)
 		case MSG_CODE_EVENT_DECOY_SETUP_0x14:
 
 			bufIndex += sizeof(EVENT_DECOY_SETUP);
+			break;
+		case MSG_CODE_OBJECT_UPDATE_0x21:
+		{
+			UPDATE_OBJECT rcvData;
+			memset(&rcvData, 0x00, sizeof(UPDATE_OBJECT));
+			memcpy(&rcvData, &msg[bufIndex], sizeof(UPDATE_OBJECT));
+
+			bufIndex += sizeof(UPDATE_OBJECT);
+
+			TRACE("type:%#x, length:%d, ObjectID:%d, ObjectType:%d\n", rcvData.type, rcvData.length, rcvData.objectID, rcvData.objectType);
+			TRACE("x:%f, y:%f, z:%f, h:%f, p:%f, r:%f\n", rcvData.x, rcvData.y, rcvData.z, rcvData.h, rcvData.p, rcvData.r);
+
+		}
 			break;
 		default:
 

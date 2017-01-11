@@ -90,7 +90,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;_AFXDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\Users\LIGS\Source\Repos\TestFramework\TestFramework\dhTCP;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -187,11 +187,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ClientSocket.h" />
     <ClInclude Include="EASCommon.h" />
     <ClInclude Include="EASMsgCode.h" />
     <ClInclude Include="EASStruct.h" />
-    <ClInclude Include="ListenSocket.h" />
     <ClInclude Include="objectBase.h" />
     <ClInclude Include="ObjectMananger.h" />
     <ClInclude Include="Resource.h" />
@@ -202,8 +200,6 @@
     <ClInclude Include="TestFrameworkDlg.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ClientSocket.cpp" />
-    <ClCompile Include="ListenSocket.cpp" />
     <ClCompile Include="objectBase.cpp" />
     <ClCompile Include="ObjectMananger.cpp" />
     <ClCompile Include="stdafx.cpp">
